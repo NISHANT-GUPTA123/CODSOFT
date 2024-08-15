@@ -1,0 +1,29 @@
+
+import java.util.Scanner;
+
+public class task1 {
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        String userInput;
+        System.out.println("Welcome to my chat bot! How can i help you?");
+        while (true) {
+          
+            userInput = sc.nextLine();
+            if (userInput.contains("Hi! What is your name?")) {
+                System.out.println("Hello there! I am Luna, your friendly chatbot. Nice to meet you!");
+            } else if (userInput.contains("What is your favorite movie?")) {
+                System.out.println("Bot : I do not have personal preferences like humans");
+            } else if (userInput.contains("Thanks! What are you passionate about?")) {
+                System.out.println("Bot : I am passionate about helping people learn and access information. I love seeing how knowledge can be used to make the world a better place.");
+            } else if (userInput.contains("What is the weather like today?")) {
+                System.out.println("Sorry i cannot provide you that details but I am still learning! Can you try saying that another way?");
+            } else if (userInput.contains("Thanks for chatting")) {
+                System.out.println("Bot : You're welcome! Have a great day!");
+                break;
+            } else {
+                System.out.println("I'm not sure I understand. Could you rephrase that?");
+            }
+        }
+    }
+}
