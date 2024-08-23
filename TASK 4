@@ -1,1 +1,113 @@
+import java.util.*;
+import java.util.stream.Collectors;
 
+public class task4 {
+
+    private Map<String, Set<String>> userPreferences;
+    private Map<String, Map<String, Double>> itemSimilarities;
+
+    public task4() {
+        userPreferences = new HashMap<>();
+        itemSimilarities = new HashMap<>();
+    }
+
+    public void addUserPreference(String user, String item) {
+        userPreferences.computeIfAbsent(user, k -> new HashSet<>()).add(item);
+    }
+
+    public void calculateItemSimilarities() {
+        Set<String> allItems = userPreferences.values().stream()
+                .flatMap(Set::stream)
+                .collect(Collectors.toSet());
+
+        for (String item1 : allItems) {
+            Map<String, Double> similarityMap = new HashMap<>();
+            for (String item2 : allItems) {
+                if (!item1.equals(item2)) {
+                    double similarity = cosineSimilarity(item1, item2);
+                    similarityMap.put(item2, similarity);
+                }
+            }
+            itemSimilarities.put(item1, similarityMap);
+        }
+    }
+
+    private double cosineSimilarity(String item1, String item2) {
+        Set<String> commonUsers = new HashSet<>(userPreferences.getOrDefault(item1, Collections.emptySet()));
+        commonUsers.retainAll(userPreferences.getOrDefault(item2, Collections.emptySet()));
+
+        if (commonUsers.isEmpty()) {
+            return 0.0;
+        }
+
+        double dotProduct = commonUsers.size();
+        double magnitude1 = Math.sqrt(userPreferences.getOrDefault(item1, Collections.emptySet()).size());
+        double magnitude2 = Math.sqrt(userPreferences.getOrDefault(item2, Collections.emptySet()).size());
+        return dotProduct / (magnitude1 * magnitude2);
+    }
+
+    public List<String> recommendItems(String user, int numRecommendations) {
+        List<String> recommendations = new ArrayList<>();
+        Set<String> userItems = userPreferences.getOrDefault(user, Collections.emptySet());
+
+        for (String item : userItems) {
+            Map<String, Double> similarItems = itemSimilarities.getOrDefault(item, Collections.emptyMap());
+            similarItems.entrySet().stream()
+                    .filter(entry -> !userItems.contains(entry.getKey()))
+                    .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                    .limit(numRecommendations)
+                    .forEach(entry -> recommendations.add(entry.getKey()));
+        }
+
+        return recommendations;
+    }
+
+    public static void main(String[] args) {
+        task4 system = new task4();
+
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("\nChoose an option:");
+            System.out.println("1. Add user preference");
+            System.out.println("2. Get recommendations");
+            System.out.println("3. Exit");
+
+            int choice = scanner.nextInt();
+            scanner.nextLine();
+
+            switch (choice) {
+                case 1:
+                    System.out.print("Enter user: ");
+                    String user = scanner.nextLine();
+                    System.out.print("Enter item: ");
+                    String item = scanner.nextLine();
+                    system.addUserPreference(user, item);
+                    system.calculateItemSimilarities(); 
+                    break;
+                case 2:
+                    System.out.print("Enter user: ");
+                    String targetUser = scanner.nextLine();
+                    System.out.print("Enter number of recommendations: ");
+                    int numRecs = scanner.nextInt();
+                    scanner.nextLine(); 
+                    List<String> recs = system.recommendItems(targetUser, numRecs);
+                    if (recs.isEmpty()) {
+                        System.out.println("No recommendations available for this user.");
+                    } else {
+                        System.out.println("Recommendations for " + targetUser + ":");
+                        for (String rec : recs) {
+                            System.out.println("- " + rec);
+                        }
+                    }
+                    break;
+                case 3:
+                    System.out.println("Exiting...");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please enter a valid option.");
+            }
+        }
+    }
+}
